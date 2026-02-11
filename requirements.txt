@@ -1,0 +1,11 @@
+flask
+yt-dlp
+google-generativeai
+python-dotenv
+tavily-python
+requests
+pillow
+groq
+opencv-python
+werkzeug
+google-search-results
