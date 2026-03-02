@@ -4,10 +4,10 @@ let selectedFile = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileInput');
-    const textInput = document.getElementById('textInput');
+    const textInput = document.getElementById('textInput'); // This is the URL input
     const dropZone = document.getElementById('dropZone');
 
-    // 1. If Text is typed, disable File Upload
+    // 1. If Text (URL) is typed, disable File Upload
     textInput.addEventListener('input', () => {
         if (textInput.value.length > 0) {
             dropZone.style.opacity = "0.5";
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. If File is selected, disable Text Input
+    // 2. If File is selected, disable Text (URL) Input
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length > 0) {
             selectedFile = fileInput.files[0];
@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('fileLabel').innerHTML = `✅ Ready: <strong>${selectedFile.name}</strong>`;
             dropZone.classList.add('upload-active');
             
-            // Lock Text Input
+            // Lock Text (URL) Input
             textInput.value = "";
-            textInput.placeholder = "File attached. Text input disabled.";
+            textInput.placeholder = "File attached. URL input disabled.";
             textInput.disabled = true;
         }
     });
@@ -39,10 +39,11 @@ async function startScan() {
     const resultBox = document.getElementById('resultBox');
     const loader = document.getElementById('loader');
     const textInput = document.getElementById('textInput');
+    const textClaim = document.getElementById('textClaim'); // Fetch the new text claim box
 
-    // Validation
-    if (!textInput.value && !selectedFile) {
-        alert("Please provide ONE input (File or Link).");
+    // Validation: Ensure at least ONE of the three inputs is provided
+    if (!textInput.value && !selectedFile && !textClaim.value) {
+        alert("Please provide a media file, a URL, or a text claim to verify.");
         return;
     }
 
@@ -52,6 +53,7 @@ async function startScan() {
     const formData = new FormData();
     if (selectedFile) formData.append('file', selectedFile);
     if (textInput.value) formData.append('input', textInput.value);
+    if (textClaim.value) formData.append('text_claim', textClaim.value); // Neatly append the text claim
 
     try {
         const response = await fetch('/analyze', { method: 'POST', body: formData });
@@ -61,12 +63,13 @@ async function startScan() {
 
         if (data.error) {
             resultBox.innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> ${data.error}</div>`;
-            // Reset inputs on error
+            // Reset URL input on error
             textInput.disabled = false;
-            textInput.placeholder = "Or paste a URL...";
+            textInput.placeholder = "Or paste a media URL (YouTube, Insta)...";
             return;
         }
 
+        // Save report data for the certificate page
         localStorage.setItem('aispy_report', JSON.stringify(data));
 
         // Generate Source Links HTML

@@ -1,11 +1,18 @@
+# Web Framework
 flask
-yt-dlp
-google-generativeai
-python-dotenv
-tavily-python
-requests
-pillow
-groq
-opencv-python
 werkzeug
+
+# Environment & API Communication
+python-dotenv
+requests
+
+# AI Brain (Cloud API)
+groq
+
+# Media Handling (Lightweight versions)
+opencv-python-headless
+yt-dlp
+
+# Search Agents
+tavily-python
 google-search-results
