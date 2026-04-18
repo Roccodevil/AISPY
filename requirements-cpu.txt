@@ -22,6 +22,7 @@ google-search-results
 
 # Media Handling (Lightweight/CPU-Only)
 opencv-python-headless
+pytesseract
 yt-dlp
 
 # Deep Learning & Computer Vision (CPU-Only)
