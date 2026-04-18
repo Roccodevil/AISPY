@@ -1,5 +1,6 @@
-temp_downloads/*
-!temp_downloads/.gitkeep
+# ==========================================
+# PYTHON & DEVELOPMENT
+# ==========================================
 __pycache__/
 *.pyc
 *.pyo
@@ -12,14 +13,99 @@ dist/
 build/
 .vscode/
 .idea/
-*.mp4
-*.avi
-*.mov
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv
+
+# ==========================================
+# ENVIRONMENT & CONFIGURATION
+# ==========================================
+.env
+.env.local
+*.log
+log.txt
+
+# ==========================================
+# MEDIA FILES (TESTING)
+# ==========================================
+test*.mp4
+test*.avi
+test*.mov
+test*.mov
+test*.mkv
+sample*.mp4
+sample*.avi
+temp_downloads/*
+!temp_downloads/.gitkeep
+
+# ==========================================
+# TEST & DEVELOPMENT FILES
+# ==========================================
+test.py
+test1.py
+test2.py
+debug*.py
+*.tmp
+
+# ==========================================
+# IDE & EDITOR FILES
+# ==========================================
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# MODEL CHECKPOINTS (Exclude, but keep main models)
+# ==========================================
+# Keep: face_v2_enhanced (1)/ with config.json & model.safetensors
+# Keep: omni_detector_v1/ with config.json & model.safetensors
+# Exclude: checkpoint-* directories (they're large and redundant)
+*/checkpoint-*/
+!face_v2_enhanced\ \(1\)/
+!face_v2_enhanced\ \(1\)/config.json
+!face_v2_enhanced\ \(1\)/model.safetensors
+!face_v2_enhanced\ \(1\)/preprocessor_config.json
+!omni_detector_v1/
+!omni_detector_v1/config.json
+!omni_detector_v1/model.safetensors
+!omni_detector_v1/preprocessor_config.json
+
+# ==========================================
+# IMPORTANT: KEEP THESE MODELS
+# ==========================================
+# The model directories are required for the system to work
+# They contain trained weights for:
+# - face_v2_enhanced (1): Fine-tuned face deepfake detector
+# - omni_detector_v1: Whole-image authenticity detector
+# - aispy_efficientnet: EfficientNet model data
+
+# ==========================================
+# LOCAL DATA & CACHE
+# ==========================================
+*.cache
+.cache/
+*.pkl
+*.pickle
+*.joblib
+
+# ==========================================
+# MEDIA EXTENSIONS (Testing samples)
+# ==========================================
 *.jpg
 *.jpeg
 *.png
 *.gif
-test.py
-test1.py
-test2.py
-.env
+*.bmp
+*.webp
+
+# ==========================================
+# OS-SPECIFIC
+# ==========================================
+.DS_Store
+Desktop.ini
+Thumbs.db

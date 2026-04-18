@@ -1,52 +1,55 @@
 import os
-import glob
-import yt_dlp
 import uuid
-import requests
-import shutil
+import yt_dlp
 
-DOWNLOAD_FOLDER = "temp_downloads"
-if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+DOWNLOAD_FOLDER = 'temp_downloads'
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-def download_media(url):
-    print(f"⬇️ Attempting Download: {url}")
-    unique_id = str(uuid.uuid4())[:8]
-    
-    # Check if direct image link
-    if any(url.lower().endswith(ext) for ext in ['.jpg', '.png', '.webp']):
-        try:
-            # (Image download logic same as before...)
-            return "path_to_image", "image"
-        except: pass
-
-    # Robust Video Download
-    output_template = f"{DOWNLOAD_FOLDER}/{unique_id}.%(ext)s"
-    
-    ydl_opts = {
-        'format': 'best[ext=mp4]/best', # Force MP4
-        'outtmpl': output_template,
-        'geo_bypass': True,
-        'quiet': True,
-        'no_warnings': True,
-        'ignoreerrors': True,
-        # This helps with YouTube Shorts
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    }
-
+def download_media(url: str):
+    """
+    Downloads media from a given URL using yt-dlp.
+    Returns the local file path and the media type ('video' or 'image').
+    """
     try:
+        # Generate a unique filename using UUID
+        unique_id = str(uuid.uuid4())[:8]
+        output_template = os.path.join(DOWNLOAD_FOLDER, f'{unique_id}.%(ext)s')
+
+        ydl_opts = {
+            'outtmpl': output_template,
+            'quiet': True,
+            'no_warnings': True,
+            'format': 'best[ext=mp4]/best', # Prioritize mp4 for OpenCV compatibility
+        }
+
+        print(f"  ⬇️ Attempting Download via yt-dlp: {url}")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-        
-        # Find the file
-        list_of_files = glob.glob(f"{DOWNLOAD_FOLDER}/{unique_id}*")
-        if list_of_files:
-            final_file = max(list_of_files, key=os.path.getsize)
-            print(f"✅ Downloaded: {final_file}")
-            return final_file, "video"
+            info_dict = ydl.extract_info(url, download=True)
             
+            # Locate the downloaded file path
+            ext = info_dict.get('ext', 'mp4')
+            downloaded_file = os.path.join(DOWNLOAD_FOLDER, f'{unique_id}.{ext}')
+            
+            if os.path.exists(downloaded_file):
+                print(f"  ✅ Downloaded: {downloaded_file}")
+                # Determine type
+                media_type = "video" if ext.lower() in ['mp4', 'webm', 'mkv', 'mov'] else "image"
+                return downloaded_file, media_type
+            else:
+                print("  ❌ File download failed or could not be located.")
+                return None, None
+
     except Exception as e:
-        print(f"❌ Download Error: {e}")
+        print(f"  ❌ yt-dlp Error: {e}")
+        return None, None
+
+def cleanup_file(filepath: str):
+    """Removes the file after analysis to save space."""
+    if filepath and os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+        except Exception as e:
+            print(f"⚠️ Could not delete {filepath}: {e}")
 
     return None, None
 

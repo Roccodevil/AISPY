@@ -30,23 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stamp.style.borderColor = '#ffc107';
     }
 
-    // 4. Populate XAI Reasoning and Context
-    document.getElementById('reasoningText').innerText = data.reasoning || "No reasoning provided.";
-    document.getElementById('aiCaption').innerText = data.extracted_context || "No contextual data extracted.";
-    document.getElementById('visualStatus').innerText = data.visual_evidence || "No pixel tampering detected.";
-
-    // 5. Populate Sources
-    const sourceList = document.getElementById('sourceList');
-    sourceList.innerHTML = '';
-    
-    if (data.context_sources && data.context_sources.length > 0) {
-        data.context_sources.forEach(source => {
-            let li = document.createElement('li');
-            li.style.marginBottom = "5px";
-            li.innerHTML = `<a href="${source.url}" target="_blank" style="text-decoration:none; color:#0d6efd;">🔗 ${source.title || 'Source Link'}</a>`;
-            sourceList.appendChild(li);
-        });
-    } else {
-        sourceList.innerHTML = '<li>No reliable web sources found confirming or denying the context.</li>';
-    }
+    // 4. Render full Intelligence Brief
+    const reportText = data.final_report || data.reasoning || "No report narrative was generated.";
+    document.getElementById('finalReport').textContent = reportText;
 });

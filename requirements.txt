@@ -1,18 +1,21 @@
-# Web Framework
-flask
-werkzeug
+# Machine Learning & Forensics Backend
+torch
+torchvision
+torchaudio
+transformers
+deepface
+tf-keras
 
-# Environment & API Communication
-python-dotenv
-requests
+# Media Processing
+opencv-python
+Pillow
+pytesseract
+librosa
+soundfile
 
-# AI Brain (Cloud API)
-groq
-
-# Media Handling (Lightweight versions)
-opencv-python-headless
-yt-dlp
-
-# Search Agents
+# Multi-Agent Framework
+langgraph
+langchain-core
+langchain-groq
+langsmith
 tavily-python
-google-search-results

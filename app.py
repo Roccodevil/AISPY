@@ -1,5 +1,5 @@
 import os
-import json
+import uuid
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
@@ -7,15 +7,17 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Import the Analysis Agents
-# Note: We removed 'video_gen' as requested
-from utils import downloader, search_agent, ai_forensics, brain, visual_search
+# Import our new architecture
+from core.workflow import run_aispy_pipeline
+from core.observability import init_langsmith_observability
+from utils import downloader
 
 app = Flask(__name__)
+init_langsmith_observability()
 
 # Configuration
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'mp4', 'mov', 'avi'}
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # 50 MB limit
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -30,114 +32,89 @@ def report():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    print("\n" + "="*50)
-    print("🚀 STARTING FORENSIC ANALYSIS (INSIGHT MODE)")
-    print("="*50)
-    
-    media_path = None
-    media_type = "text"
-    user_input_text = request.form.get('input', '').strip()
-    text_claim = request.form.get('text_claim', '').strip() # NEW text claim input
+    # 1. Grab inputs from frontend
     file_obj = request.files.get('file')
+    user_input_url = request.form.get('input', '').strip()
+    text_claim = request.form.get('text_claim', '').strip()
 
-    # --- INPUT VALIDATION ---
-    if not file_obj and not user_input_text and not text_claim:
+    # Input Validation
+    if not file_obj and not user_input_url and not text_claim:
         return jsonify({"error": "Please provide a media file, URL, or text claim."}), 400
 
+    media_path = None
+    input_type = "text" # Default to text
+    request_id = str(uuid.uuid4())
+
     try:
-        # --- STAGE 1: INGESTION (Download/Save) ---
-        if file_obj:
-            print("[DEBUG] Step 1: Processing File Upload...")
+        # 2. Ingest Media (If Provided)
+        if file_obj and file_obj.filename != '':
+            print("[SERVER] Processing local file upload...")
             if allowed_file(file_obj.filename):
                 filename = secure_filename(file_obj.filename)
                 media_path = os.path.join(downloader.DOWNLOAD_FOLDER, filename)
                 file_obj.save(media_path)
-                media_type = "video" if filename.lower().endswith(('.mp4', '.mov', '.avi')) else "image"
+                input_type = "media"
             else:
-                return jsonify({"error": "Invalid file type"}), 400
-        
-        elif user_input_text and user_input_text.startswith("http"):
-            print(f"[DEBUG] Step 1: Downloading from URL: {user_input_text}")
-            path, detected_type = downloader.download_media(user_input_text)
-            if path:
-                media_path = path
-                media_type = detected_type
-            else:
+                return jsonify({"error": "Invalid file type."}), 400
+
+        elif user_input_url and user_input_url.startswith("http"):
+            print(f"[SERVER] Downloading from URL: {user_input_url}")
+            media_path, _ = downloader.download_media(user_input_url)
+            if not media_path:
                 return jsonify({"error": "Could not download content from link."}), 400
+            input_type = "media"
 
-        # --- STAGE 2: MULTI-MODEL FORENSICS & DEFAULTS ---
-        # Default values for Text-Only Mode
-        deepfake_data = "N/A - Text claim only. No visual media provided."
-        search_query = text_claim or user_input_text
-        fake_prob = 0.0
-        ai_caption = ""
-        
-        if media_path:
-            print(f"[DEBUG] Step 2: Running Ensemble Forensics on {media_path}...")
-            try:
-                results = ai_forensics.analyze_media(media_path, media_type)
-                visual_data = results.get('visual_evidence', 'N/A')
-                ai_caption = results.get('generated_caption', 'No caption')
-                fake_prob = results.get('fake_probability', 0.0)
-                
-                deepfake_data = f"{visual_data} (Calculated Fake Probability: {fake_prob*100:.1f}%)"
-                print(f"[DEBUG] Visual Evidence: {visual_data}")
-                print(f"[DEBUG] AI Caption: {ai_caption}")
-                
-                # If user uploaded media but didn't type a claim, search using the AI caption
-                if not text_claim and not user_input_text:
-                    search_query = ai_caption if len(ai_caption) > 10 else "Unknown media context"
-                    
-            except Exception as e:
-                print(f"❌ [DEBUG] Forensics Crashed: {e}")
-                deepfake_data = "Forensics Analysis Failed"
-
-        # --- STAGE 3: VISUAL SEARCH (Google Lens Clone) ---
-        lens_results = []
-        if user_input_text and user_input_text.startswith("http"):
-             print(f"[DEBUG] Step 3: Running Visual Search (Lens) on URL...")
-             lens_results = visual_search.google_lens_search(user_input_text)
-
-        # --- STAGE 4: TEXT SEARCH (The Investigator) ---
-        print(f"[DEBUG] Step 4: Searching Web for: '{search_query}'")
-        search_result = search_agent.verify_claims(search_query)
-        
-        combined_sources = search_result.get('sources', []) + lens_results
-        print(f"[DEBUG] Found {len(combined_sources)} total references.")
-
-        # --- STAGE 5: BRAIN SYNTHESIS (The Verdict) ---
-        print("[DEBUG] Step 5: Synthesizing Verdict...")
-        
-        raw_json_string = brain.generate_verdict(
-            query=search_query,
-            deepfake_data=deepfake_data,
-            search_data=json.dumps(search_result)
+        # 3. Trigger the LangGraph Multi-Agent Workflow
+        # This one line orchestrates the CNN, the Web Search, and the AI Agents!
+        final_state = run_aispy_pipeline(
+            input_type=input_type,
+            media_path=media_path,
+            text_claim=text_claim if text_claim else None,
+            request_id=request_id
         )
-        
-        # --- STAGE 6: PARSING ---
-        try:
-            final_data = json.loads(raw_json_string)
-        except Exception:
-            final_data = {
-                "verdict": "Unverified",
-                "confidence": 0,
-                "reasoning": "AI analysis complete, but formatting failed."
-            }
 
-        # Inject data for the Explainable AI (XAI) Certificate
-        final_data['context_sources'] = combined_sources
-        final_data['extracted_context'] = ai_caption
-        final_data['visual_evidence'] = deepfake_data
+        # 4. Handle Pipeline Errors
+        if final_state.get("errors"):
+            print(f"⚠️ Pipeline Errors: {final_state['errors']}")
+            if not final_state.get("final_result"):
+                return jsonify({"error": "Analysis failed: " + " | ".join(final_state["errors"])}), 500
 
-        # Cleanup
+        # 5. Extract Pydantic Objects for the XAI Frontend
+        verdict_data = final_state.get("final_result")
+        forensics_data = final_state.get("forensics_data")
+        osint_data = final_state.get("osint_data")
+
+        if not verdict_data:
+             return jsonify({"error": "The AI Auditor failed to generate a verdict."}), 500
+
+        # Map the strict Pydantic models to the JSON format expected by report.js
+        response_data = {
+            "verdict": verdict_data.verdict,
+            "confidence": verdict_data.confidence,
+            "reasoning": f"{verdict_data.reasoning} {verdict_data.xai_breakdown}",
+            "final_report": final_state.get("final_report", ""),
+            
+            # XAI Details from Forensics
+            "extracted_context": final_state.get("media_context", "") or (forensics_data.extracted_caption if forensics_data else "No vision context."),
+            "visual_evidence": forensics_data.visual_evidence if forensics_data else "No visual forensics run.",
+            
+            # XAI Details from OSINT
+            "context_sources": [{"url": url, "title": "Verified Source"} for url in osint_data.sources_used] if osint_data and osint_data.sources_used else []
+        }
+
+        # 6. Cleanup local files
         if media_path:
             downloader.cleanup_file(media_path)
 
-        return jsonify(final_data)
+        return jsonify(response_data)
 
     except Exception as e:
         print(f"🔥 CRITICAL SYSTEM ERROR: {e}")
+        # Ensure cleanup happens even on crash
+        if media_path:
+             downloader.cleanup_file(media_path)
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    # Start the Flask Server
     app.run(debug=True, port=5000)

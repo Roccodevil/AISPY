@@ -1,0 +1,37 @@
+# Web Framework
+flask
+werkzeug
+fastapi
+
+# Environment & API
+python-dotenv
+requests
+
+# Core AI Orchestration (The Multi-Agent Stack)
+langchain
+langchain-groq
+langgraph
+langsmith
+crewai
+pydantic
+litellm[proxy]
+
+# Search Agents
+tavily-python
+google-search-results
+
+# Media Handling (Lightweight/CPU-Only)
+opencv-python-headless
+yt-dlp
+
+# Deep Learning & Computer Vision (CPU-Only)
+# PyTorch CPU - Install from PyTorch.org index
+transformers
+pillow
+numpy
+scipy
+scikit-learn
+
+# Install with: pip install -r requirements-cpu.txt
+# Then install CPU-only torch:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu

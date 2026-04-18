@@ -1,0 +1,30 @@
+# Git / VCS
+.git
+.gitignore
+
+# Python caches / virtual envs
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Local/dev artifacts
+log.txt
+temp_downloads/
+*.log
+.env
+.env.*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Large training checkpoints not needed for runtime (optional, keep if app needs them)
+face_v2_enhanced (1)/checkpoint-*/
+omni_detector_v1/checkpoint-*/

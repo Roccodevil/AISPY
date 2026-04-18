@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .xai-box { background-color: #f8f9fa; border-left: 4px solid #343a40; padding: 10px 15px; margin-top: 10px; font-family: monospace; font-size: 0.9em;}
+        .markdown-report { white-space: pre-wrap; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; line-height: 1.65; }
     </style>
 </head>
 <body class="report-body">
@@ -20,7 +21,7 @@
             </div>
         </div>
 
-        <h2 class="text-center mb-4">Explainable AI (XAI) Certificate</h2>
+        <h2 class="text-center mb-4">AI-SPY Executive Intelligence Brief</h2>
         
         <div class="verdict-box">
             <div id="verdictStamp" class="stamp">ANALYZING</div>
@@ -29,45 +30,14 @@
 
         <div class="row">
             <div class="col-12">
-                <div class="section-title">01. Neural Reasoning (The Verdict)</div>
-                <p id="reasoningText" class="mt-3 lead fs-6 fw-semibold">Waiting for data...</p>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="section-title">02. Explainable Context (What the AI Saw)</div>
-                <div class="xai-box" id="aiCaption">Loading vision context...</div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="section-title">03. Pixel Forensics</div>
-                <ul class="list-unstyled mt-3 small text-muted">
-                    <li><strong>Deepfake Detection:</strong></li>
-                    <div class="xai-box" id="visualStatus" style="border-left-color: #dc3545;">Pending...</div>
-                    <li class="mt-2"><strong>Frame Extraction:</strong> Verified</li>
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <div class="section-title">04. Web Intelligence</div>
-                <ul class="list-unstyled mt-3 small text-muted">
-                    <li><strong>Search Engine:</strong> Tavily AI / Google Lens</li>
-                    <li><strong>Status:</strong> Cross-Referenced</li>
-                </ul>
-                <div class="mt-3">
-                    <strong class="small text-muted">REFERENCES FOUND:</strong>
-                    <ul id="sourceList" class="list-unstyled small mt-1 xai-box" style="border-left-color: #0d6efd;">
-                        <li>Loading sources...</li>
-                    </ul>
-                </div>
+                <div class="section-title">Final Intelligence Report</div>
+                <div id="finalReport" class="xai-box markdown-report">Waiting for generated report...</div>
             </div>
         </div>
 
         <div class="mt-5 pt-4 text-center text-muted small border-top">
-            <p>Generated securely by AI-SPY Explainable Forensics Engine.</p>
-            <button class="btn btn-dark btn-sm no-print mt-2" onclick="window.print()">🖨️ Print XAI Certificate</button>
+            <p>Generated securely by AI-SPY Threat Intelligence Engine.</p>
+            <button class="btn btn-dark btn-sm no-print mt-2" onclick="window.print()">🖨️ Print Intelligence Brief</button>
             <a href="/" class="btn btn-outline-secondary btn-sm no-print mt-2">← Analyze Another</a>
         </div>
     </div>
